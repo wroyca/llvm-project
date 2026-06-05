@@ -1648,6 +1648,17 @@ ContinuationIndenter::getNewLineColumn(const LineState &State) {
       ((NextNonComment->is(tok::colon) &&
         NextNonComment->is(TT_ConditionalExpr)) ||
        Previous.is(TT_ConditionalExpr))) {
+    auto ConditionalOperandIndent = [&] {
+      unsigned Indent = CurrentState.Indent.Total;
+      if (Style.AlignOperands != FormatStyle::OAS_DontAlign)
+        Indent -= Style.ContinuationIndentWidth;
+      if (Style.BreakBeforeTernaryOperators && CurrentState.UnindentOperator)
+        Indent -= 2;
+      return Indent;
+    };
+    if (Style.AlignMultilineConditionalOperators)
+      return ConditionalOperandIndent();
+
     if (((NextNonComment->is(tok::colon) && NextNonComment->Next &&
           !NextNonComment->Next->FakeLParens.empty() &&
           NextNonComment->Next->FakeLParens.back() == prec::Conditional) ||
@@ -1658,12 +1669,7 @@ ContinuationIndenter::getNewLineColumn(const LineState &State) {
       //    * not remove the 'lead' ContinuationIndentWidth
       //    * always un-indent by the operator when
       //    BreakBeforeTernaryOperators=true
-      unsigned Indent = CurrentState.Indent.Total;
-      if (Style.AlignOperands != FormatStyle::OAS_DontAlign)
-        Indent -= Style.ContinuationIndentWidth;
-      if (Style.BreakBeforeTernaryOperators && CurrentState.UnindentOperator)
-        Indent -= 2;
-      return Indent;
+      return ConditionalOperandIndent();
     }
     return CurrentState.QuestionColumn;
   }

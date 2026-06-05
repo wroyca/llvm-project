@@ -1572,6 +1572,27 @@ the configuration (without a prefix: ``Auto``).
         int dddddddddd;
 
 
+.. _AlignMultilineConditionalOperators:
+
+**AlignMultilineConditionalOperators** (``Boolean``) :versionbadge:`clang-format 23` :ref:`¶ <AlignMultilineConditionalOperators>`
+  If ``true``, format multiline conditional operators using the active
+  continuation and operand alignment settings.
+
+  This avoids using nested conditional operators as extra indentation anchors
+  in multiline conditional expressions.
+
+  .. code-block:: c++
+
+    true:
+    const char *Result = FirstCondition  ? FirstValue  :
+                         SecondCondition ? SecondValue :
+                         ThirdValue;
+
+    false:
+    const char *Result = FirstCondition  ? FirstValue  :
+                         SecondCondition ? SecondValue :
+                                           ThirdValue;
+
 
 .. _AlignOperands:
 

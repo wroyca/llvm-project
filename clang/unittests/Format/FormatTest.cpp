@@ -10137,6 +10137,43 @@ TEST_F(FormatTest, BreaksConditionalExpressionsAfterOperator) {
                Style);
 }
 
+TEST_F(FormatTest, AlignsMultilineConditionalOperators) {
+  FormatStyle Style = getLLVMStyle();
+  Style.BreakBeforeTernaryOperators = false;
+  Style.PointerAlignment = FormatStyle::PAS_Left;
+  Style.SpaceBeforeParens = FormatStyle::SBPO_Always;
+
+  StringRef Input = "const char* pext (x_assembler_cpp (src) ? \".Si\"  "
+                    "             :\n"
+                    "                                   x_objective (src)"
+                    "             ? x_obj_pext  :\n"
+                    "                                   x_pext);";
+
+  verifyFormat("const char* pext (x_assembler_cpp (src) ? \".Si\" :\n"
+               "                  x_objective (src)     ? x_obj_pext :\n"
+               "                                          x_pext);",
+               Input, Style);
+
+  Style.AlignMultilineConditionalOperators = true;
+  verifyFormat("const char* pext (x_assembler_cpp (src) ? \".Si\"      :\n"
+               "                  x_objective (src)     ? x_obj_pext :\n"
+               "                  x_pext);",
+               Input, Style);
+
+  verifyFormat("const char* Extensions[] = {\n"
+               "    x_assembler_cpp (src) ? \".Si\"      :\n"
+               "    x_objective (src)     ? x_obj_pext :\n"
+               "    x_pext,\n"
+               "};",
+               "const char* Extensions[] = {\n"
+               "    x_assembler_cpp (src) ? \".Si\"               :\n"
+               "                             x_objective (src)"
+               "             ? x_obj_pext  :\n"
+               "                             x_pext,\n"
+               "};",
+               Style);
+}
+
 TEST_F(FormatTest, DeclarationsOfMultipleVariables) {
   verifyFormat("bool aaaaaaaaaaaaaaaaa = aaaaaa->aaaaaaaaaaaaaaaaa(),\n"
                "     aaaaaaaaaaa = aaaaaa->aaaaaaaaaaa();");

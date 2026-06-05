@@ -977,12 +977,14 @@ void WhitespaceManager::alignChainedConditionals() {
               (C.Tok->FakeLParens.empty() ||
                C.Tok->FakeLParens.back() != prec::Conditional));
     };
-    // Ensure we keep alignment of wrapped operands with non-wrapped operands
-    // Since we actually align the operators, the wrapped operands need the
-    // extra offset to be properly aligned.
-    for (Change &C : Changes)
-      if (AlignWrappedOperand(C))
-        C.StartOfTokenColumn -= 2;
+    if (!Style.AlignMultilineConditionalOperators) {
+      // Ensure we keep alignment of wrapped operands with non-wrapped operands
+      // Since we actually align the operators, the wrapped operands need the
+      // extra offset to be properly aligned.
+      for (Change &C : Changes)
+        if (AlignWrappedOperand(C))
+          C.StartOfTokenColumn -= 2;
+    }
     AlignTokens(
         Style,
         [this](Change const &C) {
@@ -992,9 +994,19 @@ void WhitespaceManager::alignChainedConditionals() {
           return (C.Tok->is(TT_ConditionalExpr) && C.Tok->is(tok::question) &&
                   &C != &Changes.back() && (&C + 1)->NewlinesBefore == 0 &&
                   !(&C + 1)->IsTrailingComment) ||
-                 AlignWrappedOperand(C);
+                 (!Style.AlignMultilineConditionalOperators &&
+                  AlignWrappedOperand(C));
         },
         Changes, /*StartAt=*/0);
+    if (Style.AlignMultilineConditionalOperators) {
+      AlignTokens(
+          Style,
+          [](Change const &C) {
+            return C.Tok->is(TT_ConditionalExpr) && C.Tok->is(tok::colon) &&
+                   !C.NewlinesBefore;
+          },
+          Changes, /*StartAt=*/0);
+    }
   }
 }
 

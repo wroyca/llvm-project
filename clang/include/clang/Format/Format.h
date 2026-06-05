@@ -553,6 +553,25 @@ struct FormatStyle {
   /// \version 3.5
   OperandAlignmentStyle AlignOperands;
 
+  /// If ``true``, format multiline conditional operators using the active
+  /// continuation and operand alignment settings.
+  ///
+  /// This avoids using nested conditional operators as extra indentation
+  /// anchors in multiline conditional expressions.
+  /// \code
+  ///    true:
+  ///    const char *Result = FirstCondition  ? FirstValue  :
+  ///                         SecondCondition ? SecondValue :
+  ///                         ThirdValue;
+  ///
+  ///    false:
+  ///    const char *Result = FirstCondition  ? FirstValue  :
+  ///                         SecondCondition ? SecondValue :
+  ///                                           ThirdValue;
+  /// \endcode
+  /// \version 23
+  bool AlignMultilineConditionalOperators;
+
   /// Enums for AlignTrailingComments
   enum TrailingCommentsAlignmentKinds : int8_t {
     /// Leave trailing comments as they are.
@@ -6103,6 +6122,8 @@ struct FormatStyle {
            AlignConsecutiveTableGenDefinitionColons ==
                R.AlignConsecutiveTableGenDefinitionColons &&
            AlignEscapedNewlines == R.AlignEscapedNewlines &&
+           AlignMultilineConditionalOperators ==
+               R.AlignMultilineConditionalOperators &&
            AlignOperands == R.AlignOperands &&
            AlignTrailingComments == R.AlignTrailingComments &&
            AllowAllArgumentsOnNextLine == R.AllowAllArgumentsOnNextLine &&
