@@ -2896,6 +2896,20 @@ the configuration (without a prefix: ``Auto``).
     static inline bool            vs.      static inline bool f();
     f();
 
+.. _BreakAfterReturnTypeForQualifiedFunctionDefinition:
+
+**BreakAfterReturnTypeForQualifiedFunctionDefinition** (``Boolean``) :versionbadge:`clang-format 23` :ref:`¶ <BreakAfterReturnTypeForQualifiedFunctionDefinition>`
+  If ``true``, clang-format will break after the return type of a qualified
+  function definition according to ``BreakAfterReturnType``.
+
+  With ``BreakQualifiedFunctionDefinition: AfterNestedNameSpecifier``:
+
+  .. code-block:: c++
+
+    true:                         false:
+    int                  vs.      int Foo::
+    Foo::bar() {}                 bar() {}
+
 .. _BreakAfterJavaFieldAnnotations:
 
 **BreakAfterJavaFieldAnnotations** (``Boolean``) :versionbadge:`clang-format 3.8` :ref:`¶ <BreakAfterJavaFieldAnnotations>`

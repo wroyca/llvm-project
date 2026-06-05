@@ -1882,6 +1882,18 @@ struct FormatStyle {
   /// \version 23
   bool BreakAfterReturnTypeForFunctionDeclarationSpecifiers;
 
+  /// If ``true``, clang-format will break after the return type of a qualified
+  /// function definition according to ``BreakAfterReturnType``.
+  ///
+  /// With ``BreakQualifiedFunctionDefinition: AfterNestedNameSpecifier``:
+  /// \code
+  ///   true:                         false:
+  ///   int                  vs.      int Foo::
+  ///   Foo::bar() {}                 bar() {}
+  /// \endcode
+  /// \version 23
+  bool BreakAfterReturnTypeForQualifiedFunctionDefinition;
+
   /// If ``true``, clang-format will always break after a Json array ``[``
   /// otherwise it will scan until the closing ``]`` to determine if it should
   /// add newlines between elements (prettier compatible).
@@ -6182,6 +6194,8 @@ struct FormatStyle {
                R.BreakAfterFunctionDeclarationSpecifiers &&
            BreakAfterReturnTypeForFunctionDeclarationSpecifiers ==
                R.BreakAfterReturnTypeForFunctionDeclarationSpecifiers &&
+           BreakAfterReturnTypeForQualifiedFunctionDefinition ==
+               R.BreakAfterReturnTypeForQualifiedFunctionDefinition &&
            BreakAfterReturnType == R.BreakAfterReturnType &&
            BreakArrays == R.BreakArrays &&
            BreakBeforeBinaryOperators == R.BreakBeforeBinaryOperators &&

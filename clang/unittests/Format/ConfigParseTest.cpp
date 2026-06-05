@@ -179,6 +179,7 @@ TEST(ConfigParseTest, ParsesConfigurationBools) {
   CHECK_PARSE_BOOL(BreakAfterOpenBracketSwitch);
   CHECK_PARSE_BOOL(BreakAfterFunctionDeclarationSpecifiers);
   CHECK_PARSE_BOOL(BreakAfterReturnTypeForFunctionDeclarationSpecifiers);
+  CHECK_PARSE_BOOL(BreakAfterReturnTypeForQualifiedFunctionDefinition);
   CHECK_PARSE_BOOL(BreakBeforeCloseBracketBracedList);
   CHECK_PARSE_BOOL(BreakBeforeCloseBracketFunction);
   CHECK_PARSE_BOOL(BreakBeforeCloseBracketIf);

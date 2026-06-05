@@ -10334,6 +10334,22 @@ TEST_F(FormatTest, BreakQualifiedFunctionDefinition) {
                "  return true;\n"
                "}",
                Style);
+
+  Style.BreakAfterReturnType = FormatStyle::RTBS_All;
+  Style.BreakAfterReturnTypeForQualifiedFunctionDefinition = false;
+  verifyFormat("class E {\n"
+               "  int\n"
+               "  g();\n"
+               "};\n"
+               "bool\n"
+               "freeFunction() {\n"
+               "  return true;\n"
+               "}\n"
+               "bool foo::\n"
+               "hello() {\n"
+               "  return true;\n"
+               "}",
+               Style);
 }
 
 TEST_F(FormatTest, ReturnTypeBreakingStyle) {

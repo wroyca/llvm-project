@@ -4513,6 +4513,11 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
     }
   }
 
+  const bool SuppressBreakAfterReturnTypeForQualifiedFunctionDefinition =
+      !Style.BreakAfterReturnTypeForQualifiedFunctionDefinition &&
+      FunctionNameStart && FunctionLParen && Line.mightBeFunctionDefinition() &&
+      findUnqualifiedFunctionIdStart(*FunctionNameStart, *FunctionLParen);
+
   if (First->is(TT_ElseLBrace)) {
     First->CanBreakBefore = true;
     First->MustBreakBefore = true;
@@ -4570,7 +4575,8 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
       if (!Current->MustBreakBefore && InFunctionDecl &&
           Current->is(TT_FunctionDeclarationName)) {
         Current->MustBreakBefore =
-            mustBreakForReturnType(Line) ||
+            (!SuppressBreakAfterReturnTypeForQualifiedFunctionDefinition &&
+             mustBreakForReturnType(Line)) ||
             (Style.BreakAfterReturnTypeForFunctionDeclarationSpecifiers &&
              hasFunctionDeclarationSpecifierBeforeReturnType(Line));
       }
