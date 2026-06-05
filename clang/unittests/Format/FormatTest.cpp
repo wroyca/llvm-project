@@ -10660,6 +10660,51 @@ TEST_F(FormatTest, ReturnTypeBreakingStyle) {
   verifyFormat("void foo (int a, int b);", Style);
 }
 
+TEST_F(FormatTest, BreakAfterFunctionDeclarationSpecifiers) {
+  FormatStyle Style = getLLVMStyle();
+  Style.BreakAfterFunctionDeclarationSpecifiers = true;
+
+  verifyFormat("class Foo {\n"
+               "public:\n"
+               "  explicit\n"
+               "  Foo(int);\n"
+               "  constexpr\n"
+               "  Foo();\n"
+               "  consteval\n"
+               "  Foo(double);\n"
+               "  explicit constexpr\n"
+               "  Foo(char);\n"
+               "  explicit(true)\n"
+               "  Foo(long);\n"
+               "  explicit\n"
+               "  operator bool() const;\n"
+               "  virtual\n"
+               "  ~Foo();\n"
+               "};",
+               "class Foo {\n"
+               "public:\n"
+               "  explicit Foo(int);\n"
+               "  constexpr Foo();\n"
+               "  consteval Foo(double);\n"
+               "  explicit constexpr Foo(char);\n"
+               "  explicit(true) Foo(long);\n"
+               "  explicit operator bool() const;\n"
+               "  virtual ~Foo();\n"
+               "};",
+               Style);
+
+  verifyFormat("constexpr bool valid();\n"
+               "static int value;\n"
+               "using FooAlias = int;",
+               Style);
+
+  Style.BreakQualifiedFunctionDefinition =
+      FormatStyle::BQFDS_AfterNestedNameSpecifier;
+  verifyFormat("constexpr Foo::\n"
+               "Foo() {}",
+               "constexpr Foo::Foo() {}", Style);
+}
+
 TEST_F(FormatTest, BreakBeforeReturnType) {
   FormatStyle Style = getLLVMStyle();
   Style.BreakBeforeReturnType = FormatStyle::BBRTS_All;

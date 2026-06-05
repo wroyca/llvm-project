@@ -2845,6 +2845,20 @@ the configuration (without a prefix: ``Auto``).
 
 
 
+.. _BreakAfterFunctionDeclarationSpecifiers:
+
+**BreakAfterFunctionDeclarationSpecifiers** (``Boolean``) :versionbadge:`clang-format 23` :ref:`¶ <BreakAfterFunctionDeclarationSpecifiers>`
+  If ``true``, clang-format will break after declaration specifiers before
+  a function declaration name when the declaration has no return type.
+
+  .. code-block:: c++
+
+    true:                                  false:
+    class Foo {                   vs.      class Foo {
+      explicit                               explicit Foo();
+      Foo();                               };
+    };
+
 .. _BreakAfterJavaFieldAnnotations:
 
 **BreakAfterJavaFieldAnnotations** (``Boolean``) :versionbadge:`clang-format 3.8` :ref:`¶ <BreakAfterJavaFieldAnnotations>`

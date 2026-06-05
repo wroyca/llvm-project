@@ -3728,6 +3728,19 @@ static FormatToken *skipNameQualifier(const FormatToken *Tok) {
 // destructor.
 static FormatToken *getFunctionName(const AnnotatedLine &Line,
                                     FormatToken *&OpeningParen) {
+  auto SkipExplicitSpecifierCondition = [](FormatToken *Explicit) {
+    auto *Next = Explicit->getNextNonComment();
+    if (!Next || Next->isNot(tok::l_paren))
+      return Explicit;
+    if (Next->MatchingParen)
+      return Next->MatchingParen;
+    unsigned Level = Next->NestingLevel;
+    for (auto *Tok = Next->Next; Tok; Tok = Tok->Next)
+      if (Tok->is(tok::r_paren) && Tok->NestingLevel == Level)
+        return Tok;
+    return static_cast<FormatToken *>(nullptr);
+  };
+
   for (FormatToken *Tok = Line.getFirstNonComment(), *Name = nullptr; Tok;
        Tok = Tok->getNextNonComment()) {
     // Skip C++11 attributes both before and after the function name.
@@ -3747,9 +3760,16 @@ static FormatToken *getFunctionName(const AnnotatedLine &Line,
       return nullptr;
     }
 
+    if (Tok->is(tok::kw_explicit)) {
+      Tok = SkipExplicitSpecifierCondition(Tok);
+      if (!Tok)
+        return nullptr;
+      continue;
+    }
+
     // Skip keywords that may precede the constructor/destructor name.
     if (Tok->isOneOf(tok::kw_friend, tok::kw_inline, tok::kw_virtual,
-                     tok::kw_constexpr, tok::kw_consteval, tok::kw_explicit)) {
+                     tok::kw_constexpr, tok::kw_consteval)) {
       continue;
     }
 
@@ -4199,6 +4219,107 @@ findNoReturnQualifiedFunctionIdStart(const AnnotatedLine &Line,
   return AfterName == FunctionLParen ? Candidate : nullptr;
 }
 
+static bool isFunctionDeclarationSpecifier(const FormatToken &Tok) {
+  return isReturnTypePrefixSpecifier(Tok) || Tok.is(tok::kw_explicit);
+}
+
+static bool followsConditionalExplicitSpecifier(const FormatToken &Tok) {
+  if (Tok.isNot(tok::r_paren))
+    return false;
+
+  unsigned Depth = 0;
+  for (const auto *Current = &Tok; Current; Current = Current->Previous) {
+    if (Current->is(tok::r_paren)) {
+      ++Depth;
+      continue;
+    }
+    if (Current->is(tok::l_paren) && Depth > 0) {
+      --Depth;
+      if (Depth == 0) {
+        const auto *BeforeParens = Current->getPreviousNonComment();
+        return BeforeParens && BeforeParens->is(tok::kw_explicit);
+      }
+    }
+  }
+  return false;
+}
+
+static FormatToken *findMatchingParen(const FormatToken &LParen) {
+  if (LParen.MatchingParen)
+    return LParen.MatchingParen;
+
+  unsigned Depth = 0;
+  for (auto *Tok = const_cast<FormatToken *>(&LParen); Tok; Tok = Tok->Next) {
+    if (Tok->is(tok::l_paren)) {
+      ++Depth;
+      continue;
+    }
+    if (Tok->is(tok::r_paren) && Depth > 0 && --Depth == 0)
+      return Tok;
+  }
+  return nullptr;
+}
+
+static FormatToken *findFunctionNameAfterConditionalExplicitSpecifier(
+    const AnnotatedLine &Line, FormatToken *&FunctionLParen) {
+  for (auto *Tok = Line.getFirstNonComment(); Tok; Tok = Tok->Next) {
+    if (Tok->isNot(tok::kw_explicit))
+      continue;
+
+    auto *LParen = Tok->getNextNonComment();
+    if (!LParen || LParen->isNot(tok::l_paren))
+      continue;
+
+    auto *RParen = findMatchingParen(*LParen);
+    if (!RParen)
+      return nullptr;
+
+    auto *Candidate = RParen->getNextNonComment();
+    if (!Candidate)
+      return nullptr;
+
+    if (Candidate->is(tok::identifier)) {
+      FunctionLParen = Candidate->getNextNonComment();
+      return FunctionLParen && FunctionLParen->is(tok::l_paren) ? Candidate
+                                                                : nullptr;
+    }
+
+    if (Candidate->is(tok::kw_operator)) {
+      for (auto *Current = Candidate->Next; Current; Current = Current->Next) {
+        if (Current->is(tok::l_paren)) {
+          FunctionLParen = Current;
+          return Candidate;
+        }
+        if (Current->isOneOf(tok::semi, tok::l_brace))
+          return nullptr;
+      }
+    }
+  }
+  return nullptr;
+}
+
+static FormatToken *
+findBreakAfterFunctionDeclarationSpecifiers(FormatToken &FunctionNameStart) {
+  auto *BreakToken = &FunctionNameStart;
+  if (FunctionNameStart.is(TT_CtorDtorDeclName)) {
+    auto *Previous = FunctionNameStart.getPreviousNonComment();
+    if (Previous && Previous->is(tok::tilde))
+      BreakToken = Previous;
+  }
+
+  const auto *Previous = BreakToken->getPreviousNonComment();
+  if (!Previous)
+    return nullptr;
+
+  if (isFunctionDeclarationSpecifier(*Previous))
+    return BreakToken;
+
+  if (followsConditionalExplicitSpecifier(*Previous))
+    return BreakToken;
+
+  return nullptr;
+}
+
 void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
   if (Line.Computed)
     return;
@@ -4337,6 +4458,27 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
     if (auto *UnqualifiedStart = findUnqualifiedFunctionIdStart(
             *FunctionNameStart, *FunctionLParen)) {
       UnqualifiedStart->MustBreakBefore = true;
+      Line.ReturnTypeWrapped = true;
+    }
+  }
+
+  if (Style.BreakAfterFunctionDeclarationSpecifiers && !FunctionNameStart) {
+    FunctionNameStart =
+        findFunctionNameAfterConditionalExplicitSpecifier(Line, FunctionLParen);
+    if (FunctionNameStart && FunctionLParen) {
+      if (FunctionNameStart->is(tok::identifier))
+        FunctionNameStart->setFinalizedType(TT_CtorDtorDeclName);
+      else if (FunctionNameStart->is(tok::kw_operator))
+        FunctionNameStart->setFinalizedType(TT_FunctionDeclarationName);
+      if (FunctionLParen->is(TT_Unknown))
+        FunctionLParen->setFinalizedType(TT_FunctionDeclarationLParen);
+    }
+  }
+
+  if (Style.BreakAfterFunctionDeclarationSpecifiers && FunctionNameStart) {
+    if (auto *BreakToken =
+            findBreakAfterFunctionDeclarationSpecifiers(*FunctionNameStart)) {
+      BreakToken->MustBreakBefore = true;
       Line.ReturnTypeWrapped = true;
     }
   }

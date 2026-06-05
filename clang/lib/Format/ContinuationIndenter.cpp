@@ -44,6 +44,31 @@ static bool shouldUnindentNextOperator(const FormatToken &Tok) {
                       Previous->isOneOf(tok::kw_return, TT_RequiresClause));
 }
 
+static bool isFunctionDeclarationSpecifier(const FormatToken &Tok) {
+  return isReturnTypePrefixSpecifier(Tok) || Tok.is(tok::kw_explicit);
+}
+
+static bool followsConditionalExplicitSpecifier(const FormatToken &Tok) {
+  if (Tok.isNot(tok::r_paren))
+    return false;
+
+  unsigned Depth = 0;
+  for (const auto *Current = &Tok; Current; Current = Current->Previous) {
+    if (Current->is(tok::r_paren)) {
+      ++Depth;
+      continue;
+    }
+    if (Current->is(tok::l_paren) && Depth > 0) {
+      --Depth;
+      if (Depth == 0) {
+        const auto *BeforeParens = Current->getPreviousNonComment();
+        return BeforeParens && BeforeParens->is(tok::kw_explicit);
+      }
+    }
+  }
+  return false;
+}
+
 // Returns the length of everything up to the first possible line break after
 // the ), ], } or > matching \c Tok.
 static unsigned getLengthToMatchingParen(const FormatToken &Tok,
@@ -1679,7 +1704,8 @@ ContinuationIndenter::getNewLineColumn(const LineState &State) {
        State.Line->ReturnTypeWrapped && PreviousNonComment &&
        PreviousNonComment->is(tok::coloncolon)) ||
       (State.Line->ReturnTypeWrapped && PreviousNonComment &&
-       isReturnTypePrefixSpecifier(*PreviousNonComment))) {
+       (isFunctionDeclarationSpecifier(*PreviousNonComment) ||
+        followsConditionalExplicitSpecifier(*PreviousNonComment)))) {
     return std::max(IndentationAndAlignment(CurrentState.LastSpace),
                     CurrentState.Indent);
   }
