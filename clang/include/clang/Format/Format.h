@@ -2487,6 +2487,23 @@ struct FormatStyle {
   /// \version 23
   BreakBeforeReturnTypeStyle BreakBeforeReturnType;
 
+  /// Different ways to break qualified function definitions.
+  enum BreakQualifiedFunctionDefinitionStyle : int8_t {
+    /// Do not force breaks in qualified function definitions.
+    BQFDS_None,
+    /// Break after the nested-name-specifier of a qualified function
+    /// definition.
+    /// \code
+    ///   void a::b::
+    ///   c() {}
+    /// \endcode
+    BQFDS_AfterNestedNameSpecifier,
+  };
+
+  /// The qualified function definition breaking style to use.
+  /// \version 23
+  BreakQualifiedFunctionDefinitionStyle BreakQualifiedFunctionDefinition;
+
   /// If ``true``, break before a template closing bracket (``>``) when there is
   /// a line break after the matching opening bracket (``<``).
   /// \code
@@ -6127,6 +6144,8 @@ struct FormatStyle {
            BreakFunctionDefinitionParameters ==
                R.BreakFunctionDefinitionParameters &&
            BreakInheritanceList == R.BreakInheritanceList &&
+           BreakQualifiedFunctionDefinition ==
+               R.BreakQualifiedFunctionDefinition &&
            BreakStringLiterals == R.BreakStringLiterals &&
            BreakTemplateDeclarations == R.BreakTemplateDeclarations &&
            ColumnLimit == R.ColumnLimit && CommentPragmas == R.CommentPragmas &&

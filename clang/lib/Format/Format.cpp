@@ -763,6 +763,18 @@ struct ScalarEnumerationTraits<FormatStyle::BreakBeforeReturnTypeStyle> {
 };
 
 template <>
+struct ScalarEnumerationTraits<
+    FormatStyle::BreakQualifiedFunctionDefinitionStyle> {
+  static void
+  enumeration(IO &IO,
+              FormatStyle::BreakQualifiedFunctionDefinitionStyle &Value) {
+    IO.enumCase(Value, "None", FormatStyle::BQFDS_None);
+    IO.enumCase(Value, "AfterNestedNameSpecifier",
+                FormatStyle::BQFDS_AfterNestedNameSpecifier);
+  }
+};
+
+template <>
 struct ScalarEnumerationTraits<FormatStyle::SeparateDefinitionStyle> {
   static void enumeration(IO &IO, FormatStyle::SeparateDefinitionStyle &Value) {
     IO.enumCase(Value, "Leave", FormatStyle::SDS_Leave);
@@ -1343,6 +1355,8 @@ template <> struct MappingTraits<FormatStyle> {
     IO.mapOptional("BreakFunctionDefinitionParameters",
                    Style.BreakFunctionDefinitionParameters);
     IO.mapOptional("BreakInheritanceList", Style.BreakInheritanceList);
+    IO.mapOptional("BreakQualifiedFunctionDefinition",
+                   Style.BreakQualifiedFunctionDefinition);
     IO.mapOptional("BreakStringLiterals", Style.BreakStringLiterals);
     IO.mapOptional("BreakTemplateDeclarations",
                    Style.BreakTemplateDeclarations);
@@ -1911,6 +1925,7 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   LLVMStyle.BreakFunctionDeclarationParameters = false;
   LLVMStyle.BreakFunctionDefinitionParameters = false;
   LLVMStyle.BreakInheritanceList = FormatStyle::BILS_BeforeColon;
+  LLVMStyle.BreakQualifiedFunctionDefinition = FormatStyle::BQFDS_None;
   LLVMStyle.BreakStringLiterals = true;
   LLVMStyle.BreakTemplateDeclarations = FormatStyle::BTDS_MultiLine;
   LLVMStyle.ColumnLimit = 80;

@@ -903,6 +903,8 @@ clang-format
   enum assignments without affecting other assignments.
 - Add ``BreakBeforeReturnType`` option to break before the function return
   type.
+- Add ``BreakQualifiedFunctionDefinition`` option to break after the
+  nested-name-specifier in qualified function definitions.
 
 libclang
 --------

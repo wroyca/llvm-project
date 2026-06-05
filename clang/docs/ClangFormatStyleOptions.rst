@@ -4004,6 +4004,27 @@ the configuration (without a prefix: ``Auto``).
 
 
 
+.. _BreakQualifiedFunctionDefinition:
+
+**BreakQualifiedFunctionDefinition** (``BreakQualifiedFunctionDefinitionStyle``) :versionbadge:`clang-format 23` :ref:`¶ <BreakQualifiedFunctionDefinition>`
+  The qualified function definition breaking style to use.
+
+  Possible values:
+
+  * ``BQFDS_None`` (in configuration: ``None``)
+    Do not force breaks in qualified function definitions.
+
+  * ``BQFDS_AfterNestedNameSpecifier`` (in configuration: ``AfterNestedNameSpecifier``)
+    Break after the nested-name-specifier of a qualified function
+    definition.
+
+    .. code-block:: c++
+
+      void a::b::
+      c() {}
+
+
+
 .. _BreakStringLiterals:
 
 **BreakStringLiterals** (``Boolean``) :versionbadge:`clang-format 3.9` :ref:`¶ <BreakStringLiterals>`

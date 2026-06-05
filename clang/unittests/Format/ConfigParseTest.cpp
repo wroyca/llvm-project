@@ -939,6 +939,14 @@ TEST(ConfigParseTest, ParsesConfiguration) {
   CHECK_PARSE("BreakBeforeReturnType: TopLevelDefinitions",
               BreakBeforeReturnType, FormatStyle::BBRTS_TopLevelDefinitions);
 
+  Style.BreakQualifiedFunctionDefinition =
+      FormatStyle::BQFDS_AfterNestedNameSpecifier;
+  CHECK_PARSE("BreakQualifiedFunctionDefinition: None",
+              BreakQualifiedFunctionDefinition, FormatStyle::BQFDS_None);
+  CHECK_PARSE("BreakQualifiedFunctionDefinition: AfterNestedNameSpecifier",
+              BreakQualifiedFunctionDefinition,
+              FormatStyle::BQFDS_AfterNestedNameSpecifier);
+
   Style.BreakTemplateDeclarations = FormatStyle::BTDS_Yes;
   CHECK_PARSE("BreakTemplateDeclarations: Leave", BreakTemplateDeclarations,
               FormatStyle::BTDS_Leave);

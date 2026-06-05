@@ -4124,6 +4124,81 @@ static FormatToken *findReturnTypeStart(const AnnotatedLine &Line) {
   return Tok;
 }
 
+static FormatToken *
+findUnqualifiedFunctionIdStart(FormatToken &FunctionNameStart,
+                               const FormatToken &FunctionLParen) {
+  auto *Prev = FunctionNameStart.getPreviousNonComment();
+  if (Prev && Prev->is(tok::coloncolon))
+    return &FunctionNameStart;
+
+  if (FunctionNameStart.is(TT_CtorDtorDeclName) && Prev &&
+      Prev->is(tok::tilde)) {
+    auto *BeforeTilde = Prev->getPreviousNonComment();
+    if (BeforeTilde && BeforeTilde->is(tok::coloncolon))
+      return Prev;
+  }
+
+  FormatToken *UnqualifiedStart = nullptr;
+  for (auto *Tok = &FunctionNameStart; Tok && Tok != &FunctionLParen;
+       Tok = Tok->Next) {
+    if (Tok->is(tok::coloncolon) &&
+        Tok->NestingLevel == FunctionLParen.NestingLevel) {
+      UnqualifiedStart = Tok->getNextNonComment();
+    }
+  }
+  return UnqualifiedStart == &FunctionLParen ? nullptr : UnqualifiedStart;
+}
+
+static FormatToken *
+findNoReturnQualifiedFunctionIdStart(const AnnotatedLine &Line,
+                                     FormatToken *&FunctionLParen) {
+  auto *FirstNonComment = Line.getFirstNonComment();
+  if (!FirstNonComment)
+    return nullptr;
+
+  for (auto *Tok = FirstNonComment; Tok; Tok = Tok->Next) {
+    if (Tok->is(tok::l_paren) && Tok->NestingLevel == 0) {
+      FunctionLParen = Tok;
+      break;
+    }
+  }
+  if (!FunctionLParen)
+    return nullptr;
+
+  FormatToken *LastColonColon = nullptr;
+  for (auto *Tok = FirstNonComment; Tok && Tok != FunctionLParen;
+       Tok = Tok->Next) {
+    if (Tok->is(tok::coloncolon) &&
+        Tok->NestingLevel == FunctionLParen->NestingLevel) {
+      LastColonColon = Tok;
+    }
+  }
+  if (!LastColonColon)
+    return nullptr;
+
+  auto *Candidate = LastColonColon->getNextNonComment();
+  if (!Candidate || Candidate == FunctionLParen)
+    return nullptr;
+
+  if (Candidate->is(tok::kw_operator))
+    return Candidate;
+
+  auto *AfterName = Candidate;
+  if (Candidate->is(tok::tilde))
+    AfterName = Candidate->getNextNonComment();
+  if (!AfterName || AfterName->isNot(tok::identifier))
+    return nullptr;
+
+  AfterName = AfterName->getNextNonComment();
+  if (AfterName && AfterName->is(TT_TemplateOpener)) {
+    AfterName = AfterName->MatchingParen
+                    ? AfterName->MatchingParen->getNextNonComment()
+                    : nullptr;
+  }
+
+  return AfterName == FunctionLParen ? Candidate : nullptr;
+}
+
 void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
   if (Line.Computed)
     return;
@@ -4148,6 +4223,8 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
   bool LineIsFunctionDeclaration = false;
   FormatToken *AfterLastAttribute = nullptr;
   FormatToken *ClosingParen = nullptr;
+  FormatToken *FunctionNameStart = nullptr;
+  FormatToken *FunctionLParen = nullptr;
 
   for (auto *Tok = FirstNonComment && FirstNonComment->isNot(tok::kw_using)
                        ? FirstNonComment->Next
@@ -4164,11 +4241,16 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
         Tok->setFinalizedType(TT_FunctionDeclarationName);
       LineIsFunctionDeclaration = true;
       SeenName = true;
+      FunctionNameStart = Tok;
       if (ClosingParen) {
-        auto *OpeningParen = ClosingParen->MatchingParen;
-        assert(OpeningParen);
-        if (OpeningParen->is(TT_Unknown))
-          OpeningParen->setType(TT_FunctionDeclarationLParen);
+        FunctionLParen = ClosingParen->MatchingParen;
+        assert(FunctionLParen);
+        if (FunctionLParen->is(TT_Unknown))
+          FunctionLParen->setType(TT_FunctionDeclarationLParen);
+      } else if (IsCtorOrDtor) {
+        FunctionLParen = Tok->getNextNonComment();
+        if (FunctionLParen && FunctionLParen->isNot(tok::l_paren))
+          FunctionLParen = nullptr;
       }
       break;
     }
@@ -4239,6 +4321,23 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
         if (!Tok)
           break;
       }
+    }
+  }
+
+  if (!FunctionNameStart && IsCpp && !Line.endsWith(tok::semi)) {
+    FunctionNameStart =
+        findNoReturnQualifiedFunctionIdStart(Line, FunctionLParen);
+  }
+
+  if (Style.BreakQualifiedFunctionDefinition ==
+          FormatStyle::BQFDS_AfterNestedNameSpecifier &&
+      FunctionNameStart && FunctionLParen &&
+      (Line.MightBeFunctionDecl ? Line.mightBeFunctionDefinition()
+                                : !Line.endsWith(tok::semi))) {
+    if (auto *UnqualifiedStart = findUnqualifiedFunctionIdStart(
+            *FunctionNameStart, *FunctionLParen)) {
+      UnqualifiedStart->MustBreakBefore = true;
+      Line.ReturnTypeWrapped = true;
     }
   }
 

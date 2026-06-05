@@ -10253,6 +10253,52 @@ TEST_F(FormatTest, AlignsStringLiterals) {
                "              \"c\";");
 }
 
+TEST_F(FormatTest, BreakQualifiedFunctionDefinition) {
+  FormatStyle Style = getLLVMStyle();
+  Style.AllowShortFunctionsOnASingleLine = FormatStyle::ShortFunctionStyle();
+  Style.BreakQualifiedFunctionDefinition =
+      FormatStyle::BQFDS_AfterNestedNameSpecifier;
+
+  verifyFormat("bool foo::\n"
+               "hello() {\n"
+               "  return true;\n"
+               "}",
+               "bool foo::hello ()\n"
+               "{\n"
+               "return true;\n"
+               "}",
+               Style);
+  verifyFormat("bool foo::bar::\n"
+               "hello() {\n"
+               "  return true;\n"
+               "}",
+               Style);
+  verifyFormat("bool foo::hello();", Style);
+
+  verifyFormat("Foo::\n"
+               "Foo() {\n"
+               "  init();\n"
+               "}\n"
+               "Foo::\n"
+               "~Foo() {\n"
+               "  cleanup();\n"
+               "}",
+               Style);
+  verifyFormat("bool Foo::\n"
+               "operator==(const Foo &Other) const {\n"
+               "  return true;\n"
+               "}",
+               Style);
+
+  Style.BreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
+  verifyFormat("bool\n"
+               "foo::\n"
+               "hello() {\n"
+               "  return true;\n"
+               "}",
+               Style);
+}
+
 TEST_F(FormatTest, ReturnTypeBreakingStyle) {
   FormatStyle Style = getLLVMStyle();
   Style.ColumnLimit = 60;

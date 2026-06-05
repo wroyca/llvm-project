@@ -1673,6 +1673,11 @@ ContinuationIndenter::getNewLineColumn(const LineState &State) {
                                     TT_LeadingJavaAnnotation))) ||
       (!Style.IndentWrappedFunctionNames &&
        NextNonComment->isOneOf(tok::kw_operator, TT_FunctionDeclarationName)) ||
+      (!Style.IndentWrappedFunctionNames &&
+       Style.BreakQualifiedFunctionDefinition ==
+           FormatStyle::BQFDS_AfterNestedNameSpecifier &&
+       State.Line->ReturnTypeWrapped && PreviousNonComment &&
+       PreviousNonComment->is(tok::coloncolon)) ||
       (State.Line->ReturnTypeWrapped && PreviousNonComment &&
        isReturnTypePrefixSpecifier(*PreviousNonComment))) {
     return std::max(IndentationAndAlignment(CurrentState.LastSpace),
