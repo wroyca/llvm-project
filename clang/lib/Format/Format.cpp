@@ -1327,6 +1327,8 @@ template <> struct MappingTraits<FormatStyle> {
                    Style.BreakAfterOpenBracketSwitch);
     IO.mapOptional("BreakAfterFunctionDeclarationSpecifiers",
                    Style.BreakAfterFunctionDeclarationSpecifiers);
+    IO.mapOptional("BreakAfterReturnTypeForFunctionDeclarationSpecifiers",
+                   Style.BreakAfterReturnTypeForFunctionDeclarationSpecifiers);
     IO.mapOptional("BreakAfterReturnType", Style.BreakAfterReturnType);
     IO.mapOptional("BreakArrays", Style.BreakArrays);
     IO.mapOptional("BreakBeforeBinaryOperators",
@@ -1914,6 +1916,7 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   LLVMStyle.BreakAfterOpenBracketLoop = false;
   LLVMStyle.BreakAfterOpenBracketSwitch = false;
   LLVMStyle.BreakAfterFunctionDeclarationSpecifiers = false;
+  LLVMStyle.BreakAfterReturnTypeForFunctionDeclarationSpecifiers = false;
   LLVMStyle.BreakAfterReturnType = FormatStyle::RTBS_None;
   LLVMStyle.BreakArrays = true;
   LLVMStyle.BreakBeforeBinaryOperators = FormatStyle::BOS_None;

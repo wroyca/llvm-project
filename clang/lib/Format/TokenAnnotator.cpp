@@ -4244,6 +4244,25 @@ static bool followsConditionalExplicitSpecifier(const FormatToken &Tok) {
   return false;
 }
 
+static bool
+hasFunctionDeclarationSpecifierBeforeReturnType(const AnnotatedLine &Line) {
+  auto *FirstNonComment = Line.getFirstNonComment();
+  auto *ReturnTypeStart = findReturnTypeStart(Line);
+  if (!FirstNonComment || !ReturnTypeStart ||
+      ReturnTypeStart == FirstNonComment) {
+    return false;
+  }
+
+  for (auto *Tok = FirstNonComment; Tok && Tok != ReturnTypeStart;
+       Tok = Tok->Next) {
+    if (isFunctionDeclarationSpecifier(*Tok) ||
+        followsConditionalExplicitSpecifier(*Tok)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static FormatToken *findMatchingParen(const FormatToken &LParen) {
   if (LParen.MatchingParen)
     return LParen.MatchingParen;
@@ -4550,7 +4569,10 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) const {
           Current->MustBreakBefore || mustBreakBefore(Line, *Current);
       if (!Current->MustBreakBefore && InFunctionDecl &&
           Current->is(TT_FunctionDeclarationName)) {
-        Current->MustBreakBefore = mustBreakForReturnType(Line);
+        Current->MustBreakBefore =
+            mustBreakForReturnType(Line) ||
+            (Style.BreakAfterReturnTypeForFunctionDeclarationSpecifiers &&
+             hasFunctionDeclarationSpecifierBeforeReturnType(Line));
       }
     }
 

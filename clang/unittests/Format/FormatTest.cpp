@@ -10742,6 +10742,31 @@ TEST_F(FormatTest, BreakAfterFunctionDeclarationSpecifiers) {
                "constexpr Foo::Foo() {}", Style);
 }
 
+TEST_F(FormatTest, BreakAfterReturnTypeForFunctionDeclarationSpecifiers) {
+  FormatStyle Style = getLLVMStyle();
+  Style.BreakAfterReturnTypeForFunctionDeclarationSpecifiers = true;
+  Style.BreakQualifiedFunctionDefinition =
+      FormatStyle::BQFDS_AfterNestedNameSpecifier;
+  Style.PointerAlignment = FormatStyle::PAS_Left;
+  Style.ReferenceAlignment = FormatStyle::RAS_Pointer;
+  Style.SpaceBeforeParens = FormatStyle::SBPO_Always;
+  Style.SpaceBeforeTemplateAngleBrackets = true;
+
+  verifyFormat("static inline bool\n"
+               "msvc_header_c1083 (const string& l, "
+               "const pair <size_t, size_t>& pr)",
+               "static inline bool msvc_header_c1083 (const string& l, "
+               "const pair <size_t, size_t>& pr)",
+               Style);
+  verifyFormat(
+      "target_state compile_rule::\n"
+      "perform_clean (action a, const target& xt, const target_type& srct) "
+      "const",
+      "target_state compile_rule::perform_clean (action a, const target& xt, "
+      "const target_type& srct) const",
+      Style);
+}
+
 TEST_F(FormatTest, BreakBeforeReturnType) {
   FormatStyle Style = getLLVMStyle();
   Style.BreakBeforeReturnType = FormatStyle::BBRTS_All;

@@ -2880,6 +2880,22 @@ the configuration (without a prefix: ``Auto``).
       Foo();                               };
     };
 
+.. _BreakAfterReturnTypeForFunctionDeclarationSpecifiers:
+
+**BreakAfterReturnTypeForFunctionDeclarationSpecifiers** (``Boolean``) :versionbadge:`clang-format 23` :ref:`¶ <BreakAfterReturnTypeForFunctionDeclarationSpecifiers>`
+  If ``true``, clang-format will break after the return type of a function
+  declaration or definition that has declaration specifiers before the return
+  type.
+
+  This does not force a break after return types without declaration
+  specifiers before them.
+
+  .. code-block:: c++
+
+    true:                                  false:
+    static inline bool            vs.      static inline bool f();
+    f();
+
 .. _BreakAfterJavaFieldAnnotations:
 
 **BreakAfterJavaFieldAnnotations** (``Boolean``) :versionbadge:`clang-format 3.8` :ref:`¶ <BreakAfterJavaFieldAnnotations>`

@@ -1868,6 +1868,20 @@ struct FormatStyle {
   /// \version 23
   bool BreakAfterFunctionDeclarationSpecifiers;
 
+  /// If ``true``, clang-format will break after the return type of a function
+  /// declaration or definition that has declaration specifiers before the
+  /// return type.
+  /// \code
+  ///   true:                                  false:
+  ///   static inline bool            vs.      static inline bool f();
+  ///   f();
+  /// \endcode
+  ///
+  /// This does not force a break after return types without declaration
+  /// specifiers before them.
+  /// \version 23
+  bool BreakAfterReturnTypeForFunctionDeclarationSpecifiers;
+
   /// If ``true``, clang-format will always break after a Json array ``[``
   /// otherwise it will scan until the closing ``]`` to determine if it should
   /// add newlines between elements (prettier compatible).
@@ -6166,6 +6180,8 @@ struct FormatStyle {
            BreakAfterOpenBracketSwitch == R.BreakAfterOpenBracketSwitch &&
            BreakAfterFunctionDeclarationSpecifiers ==
                R.BreakAfterFunctionDeclarationSpecifiers &&
+           BreakAfterReturnTypeForFunctionDeclarationSpecifiers ==
+               R.BreakAfterReturnTypeForFunctionDeclarationSpecifiers &&
            BreakAfterReturnType == R.BreakAfterReturnType &&
            BreakArrays == R.BreakArrays &&
            BreakBeforeBinaryOperators == R.BreakBeforeBinaryOperators &&
