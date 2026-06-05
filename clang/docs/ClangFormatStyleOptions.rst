@@ -7321,6 +7321,18 @@ the configuration (without a prefix: ``Auto``).
      int a [5];                    vs.      int a[5];
      int a [5][5];                 vs.      int a[5][5];
 
+.. _SpaceBeforeTemplateAngleBrackets:
+
+**SpaceBeforeTemplateAngleBrackets** (``Boolean``) :versionbadge:`clang-format 23` :ref:`¶ <SpaceBeforeTemplateAngleBrackets>`
+  If ``true``, a space will be inserted before the opening angle bracket
+  of a template argument list.
+
+  .. code-block:: c++
+
+     true:                                  false:
+     std::vector <int> values;     vs.      std::vector<int> values;
+     make <widget>();                      make<widget>();
+
 .. _SpaceInEmptyBlock:
 
 **SpaceInEmptyBlock** (``Boolean``) :versionbadge:`clang-format 10` :ref:`¶ <SpaceInEmptyBlock>`

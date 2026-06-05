@@ -5521,6 +5521,16 @@ struct FormatStyle {
   /// \version 10
   bool SpaceBeforeSquareBrackets;
 
+  /// If ``true``, a space will be inserted before the opening angle bracket
+  /// of a template argument list.
+  /// \code
+  ///    true:                                  false:
+  ///    std::vector <int> values;     vs.      std::vector<int> values;
+  ///    make <widget>();                      make<widget>();
+  /// \endcode
+  /// \version 23
+  bool SpaceBeforeTemplateAngleBrackets;
+
   /// If ``false``, spaces will be removed before range-based for loop
   /// colon.
   /// \code
@@ -6271,6 +6281,8 @@ struct FormatStyle {
            SpaceBeforeRangeBasedForLoopColon ==
                R.SpaceBeforeRangeBasedForLoopColon &&
            SpaceBeforeSquareBrackets == R.SpaceBeforeSquareBrackets &&
+           SpaceBeforeTemplateAngleBrackets ==
+               R.SpaceBeforeTemplateAngleBrackets &&
            SpaceInEmptyBraces == R.SpaceInEmptyBraces &&
            SpacesBeforeTrailingComments == R.SpacesBeforeTrailingComments &&
            SpacesInAngles == R.SpacesInAngles &&

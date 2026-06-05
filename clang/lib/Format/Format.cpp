@@ -1507,6 +1507,8 @@ template <> struct MappingTraits<FormatStyle> {
                    Style.SpaceBeforeRangeBasedForLoopColon);
     IO.mapOptional("SpaceBeforeSquareBrackets",
                    Style.SpaceBeforeSquareBrackets);
+    IO.mapOptional("SpaceBeforeTemplateAngleBrackets",
+                   Style.SpaceBeforeTemplateAngleBrackets);
     IO.mapOptional("SpaceInEmptyBraces", Style.SpaceInEmptyBraces);
     IO.mapOptional("SpacesBeforeTrailingComments",
                    Style.SpacesBeforeTrailingComments);
@@ -2034,6 +2036,7 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   LLVMStyle.SpaceBeforeParensOptions.AfterIfMacros = true;
   LLVMStyle.SpaceBeforeRangeBasedForLoopColon = true;
   LLVMStyle.SpaceBeforeSquareBrackets = false;
+  LLVMStyle.SpaceBeforeTemplateAngleBrackets = false;
   LLVMStyle.SpaceInEmptyBraces = FormatStyle::SIEB_Never;
   LLVMStyle.SpacesBeforeTrailingComments = 1;
   LLVMStyle.SpacesInAngles = FormatStyle::SIAS_Never;

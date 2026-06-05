@@ -22284,6 +22284,40 @@ TEST_F(FormatTest, SpacesInAngles) {
                Spaces);
 }
 
+TEST_F(FormatTest, SpaceBeforeTemplateAngleBrackets) {
+  FormatStyle Spaces = getLLVMStyle();
+  Spaces.SpaceBeforeTemplateAngleBrackets = true;
+
+  verifyFormat("std::vector <int> values;", Spaces);
+  verifyFormat("std::map <std::string, std::vector <int>> table;", Spaces);
+  verifyFormat("using Names = std::vector <std::string>;", Spaces);
+  verifyFormat("std::optional <std::string> name;", Spaces);
+  verifyFormat("container <std::vector <int>> values;", Spaces);
+  verifyFormat("make <widget>();", Spaces);
+  verifyFormat("foo <int, float>();", Spaces);
+  verifyFormat("static_cast <int>(arg);", Spaces);
+
+  verifyFormat("if (a < b)\n"
+               "  return true;",
+               "if (a<b)\n"
+               "  return true;",
+               Spaces);
+  verifyFormat("auto x = a << b;", "auto x = a<<b;", Spaces);
+
+  Spaces.SpacesInAngles = FormatStyle::SIAS_Always;
+  verifyFormat("std::vector < int > values;", Spaces);
+  verifyFormat("foo < int >();", Spaces);
+
+  Spaces.SpacesInAngles = FormatStyle::SIAS_Never;
+  Spaces.SpaceBeforeParens = FormatStyle::SBPO_Always;
+  verifyFormat("foo <int> (value);", Spaces);
+  verifyFormat("void foo (std::vector <int> values);", Spaces);
+
+  Spaces.SpaceBeforeParens = FormatStyle::SBPO_ControlStatements;
+  Spaces.SpaceAfterTemplateKeyword = false;
+  verifyFormat("template<typename T> void f();", Spaces);
+}
+
 TEST_F(FormatTest, SpaceAfterTemplateKeyword) {
   FormatStyle Style = getLLVMStyle();
   Style.SpaceAfterTemplateKeyword = false;

@@ -6037,6 +6037,10 @@ bool TokenAnnotator::spaceRequiredBefore(const AnnotatedLine &Line,
       Left.MatchingParen->is(TT_OverloadedOperatorLParen)) {
     return false;
   }
+  if (IsCpp && Line.Type != LT_ObjCDecl && Right.is(TT_TemplateOpener) &&
+      Left.isNot(tok::kw_template)) {
+    return Style.SpaceBeforeTemplateAngleBrackets;
+  }
   if (Right.is(tok::less) && Left.isNot(tok::l_paren) &&
       Line.Type == LT_ImportStatement) {
     return true;
